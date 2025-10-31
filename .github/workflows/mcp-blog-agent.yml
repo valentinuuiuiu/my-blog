@@ -46,10 +46,10 @@ jobs:
     - name: Create logs directory
       run: mkdir -p logs
       
-    - name: Run MCP Blog Agent
+    - name: Run MCP Blog Agent (Lama Dev Style)
       run: |
-        chmod +x scripts/blog-agent-mcp.sh
-        ./scripts/blog-agent-mcp.sh
+        chmod +x scripts/blog-agent-lamadev.sh
+        ./scripts/blog-agent-lamadev.sh
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         CURRENT_DATE: ${{ github.event.head_commit.timestamp }}
