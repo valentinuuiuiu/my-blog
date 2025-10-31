@@ -1,0 +1,69 @@
+name: MCP Blog Agent
+
+on:
+  schedule:
+    - cron: '0 * * * *'  # Every hour at minute 0
+  workflow_dispatch:  # Allow manual trigger
+  push:
+    branches: [ main ]
+    paths:
+      - '.github/workflows/mcp-blog-agent.yml'
+      - 'scripts/blog-agent-mcp.sh'
+      - 'scripts/mcp_scraper.py'
+
+jobs:
+  blog-agent:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+        
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y git curl
+        
+    - name: Install Python dependencies
+      run: |
+        pip install requests
+        pip install playwright
+        playwright install chromium
+        playwright install-deps chromium
+        
+    - name: Configure Git
+      run: |
+        git config --global user.email "ionutbaltag3@gmail.com"
+        git config --global user.name "MCP Blog Agent"
+        
+    - name: Create logs directory
+      run: mkdir -p logs
+      
+    - name: Run MCP Blog Agent
+      run: |
+        chmod +x scripts/blog-agent-mcp.sh
+        ./scripts/blog-agent-mcp.sh
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        CURRENT_DATE: ${{ github.event.head_commit.timestamp }}
+        
+    - name: Upload logs as artifact
+      if: always()
+      uses: actions/upload-artifact@v3
+      with:
+        name: blog-agent-logs
+        path: logs/
+        retention-days: 7
+        
+    - name: Commit and push changes
+      run: |
+        git add .
+        git diff --staged --quiet || git commit -m "Auto-generated MCP academic post - $(date '+%Y-%m-%d %H:%M:%S')"
+        git push
