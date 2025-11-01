@@ -1,8 +1,8 @@
 name: MCP Blog Agent
 
 on:
-  schedule:
-    - cron: '0 8,14,20 * * *'  # Every 6 hours at 8am, 2pm, 8pm
+  # schedule:
+  #   - cron: '0 8,14,20 * * *'  # Every 6 hours at 8am, 2pm, 8pm - DISABLED
   workflow_dispatch:  # Allow manual trigger
 
 jobs:
