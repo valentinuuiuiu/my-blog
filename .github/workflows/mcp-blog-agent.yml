@@ -2,14 +2,8 @@ name: MCP Blog Agent
 
 on:
   schedule:
-    - cron: '0 * * * *'  # Every hour at minute 0
+    - cron: '0 8,14,20 * * *'  # Every 6 hours at 8am, 2pm, 8pm
   workflow_dispatch:  # Allow manual trigger
-  push:
-    branches: [ main ]
-    paths:
-      - '.github/workflows/mcp-blog-agent.yml'
-      - 'scripts/blog-agent-mcp.sh'
-      - 'scripts/mcp_scraper.py'
 
 jobs:
   blog-agent:
@@ -26,44 +20,248 @@ jobs:
       with:
         python-version: '3.10'
         
-    - name: Install system dependencies
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y git curl
-        
-    - name: Install Python dependencies
+    - name: Install dependencies
       run: |
         pip install requests
         pip install playwright
-        playwright install chromium
-        playwright install-deps chromium
+        playwright install chromium --with-deps
         
     - name: Configure Git
       run: |
         git config --global user.email "ionutbaltag3@gmail.com"
         git config --global user.name "MCP Blog Agent"
         
-    - name: Create logs directory
-      run: mkdir -p logs
-      
-    - name: Run MCP Blog Agent (Lama Dev Style)
+    - name: Create directories
       run: |
-        chmod +x scripts/blog-agent-lamadev.sh
-        ./scripts/blog-agent-lamadev.sh
+        mkdir -p logs
+        mkdir -p images
+        
+    - name: Generate MCP Content (Lama Dev Style)
+      run: |
+        # Generate high-quality MCP content
+        CURRENT_DATE=$(date +%Y-%m-%d)
+        CURRENT_TIME=$(date +%H:%M:%S)
+        CURRENT_TIMESTAMP=$(date +"%Y-%m-%d %H:%M:%S")
+        
+        # Select random topic
+        TOPICS=(
+            "Model Context Protocol Architecture Deep Dive"
+            "MCP Security Best Practices and Implementation"
+            "Performance Optimization in MCP Systems"
+            "Building MCP Servers: A Practical Guide"
+            "Context Management in Large-Scale MCP Deployments"
+            "MCP Integration Patterns for Development Tools"
+            "Enterprise MCP Deployment Strategies"
+            "Real-time Applications with Model Context Protocol"
+            "MCP and Multi-modal AI Integration"
+            "Advanced MCP Features and Capabilities"
+        )
+        
+        RANDOM_INDEX=$((RANDOM % ${#TOPICS[@]}))
+        SELECTED_TOPIC="${TOPICS[$RANDOM_INDEX]}"
+        POST_TITLE="MCP Research $(date +%H): $SELECTED_TOPIC"
+        
+        # Generate high-quality academic content
+        cat > mcp_content.md << 'EOF'
+        # $SELECTED_TOPIC
+
+        ## Abstract
+        This comprehensive analysis examines $SELECTED_TOPIC through the lens of current research and practical implementations. As of $CURRENT_TIMESTAMP, we present detailed technical examination of MCP capabilities, implementation patterns, and best practices for developers and organizations.
+
+        ## Introduction
+        The Model Context Protocol continues to evolve as a fundamental framework for AI system integration. Understanding $SELECTED_TOPIC is essential for building robust, scalable, and secure AI applications that leverage external resources and context management.
+
+        ## Technical Analysis
+
+        ### Core Concepts
+        $SELECTED_TOPIC involves several key technical components:
+        - Protocol specification and compliance
+        - Resource management and access patterns
+        - Security and authentication mechanisms
+        - Performance optimization strategies
+        - Scalability considerations
+
+        ### Implementation Patterns
+        Practical implementation approaches include:
+        1. **Server Architecture**: Building MCP-compliant servers
+        2. **Client Integration**: Connecting applications to MCP resources
+        3. **Context Management**: Efficient state handling
+        4. **Security Implementation**: Authentication and authorization
+        5. **Performance Optimization**: Caching and optimization techniques
+
+        ## Real-World Applications
+
+        ### Development Tools
+        MCP enables sophisticated AI-powered development environments:
+        - Context-aware code completion and suggestions
+        - Intelligent documentation access
+        - Automated testing and debugging assistance
+        - Real-time collaboration features
+
+        ### Enterprise Integration
+        Organizations leverage MCP for:
+        - Secure database and API integration
+        - Workflow automation and optimization
+        - Knowledge base access and management
+        - Decision support systems
+
+        ### Research Applications
+        Academic and research use cases include:
+        - Literature review and analysis
+        - Data processing and visualization
+        - Experiment automation
+        - Collaborative research platforms
+
+        ## Best Practices
+
+        ### Security Considerations
+        When implementing $SELECTED_TOPIC:
+        - Implement proper authentication mechanisms
+        - Use encryption for all communications
+        - Follow principle of least privilege
+        - Regular security audits and updates
+
+        ### Performance Optimization
+        For optimal performance:
+        - Implement efficient caching strategies
+        - Use connection pooling
+        - Optimize database queries
+        - Monitor and analyze performance metrics
+
+        ### Development Guidelines
+        Recommended development practices:
+        - Follow MCP specification strictly
+        - Implement comprehensive error handling
+        - Use appropriate logging and monitoring
+        - Test thoroughly before deployment
+
+        ## Future Directions
+
+        ### Emerging Trends
+        The future of $SELECTED_TOPIC includes:
+        - Enhanced security features
+        - Better performance optimization
+        - Improved developer tools
+        - Greater ecosystem integration
+
+        ### Research Opportunities
+        Areas for future research:
+        - Advanced context management algorithms
+        - Cross-protocol interoperability
+        - AI-powered optimization
+        - Quantum-resistant security
+
+        ## Conclusion
+        $SELECTED_TOPIC represents a critical aspect of modern AI system development. By understanding and implementing best practices, developers can build more sophisticated, secure, and efficient applications that leverage the full potential of the Model Context Protocol.
+
+        ## References
+        1. Model Context Protocol Specification (2025)
+        2. MCP Security Documentation (2025)
+        3. Performance Optimization Best Practices (2025)
+        4. Academic Research on AI Integration (2024-2025)
+        5. Community Implementation Examples (2025)
+
+        ---
+        *Published: $CURRENT_DATE $CURRENT_TIME*  
+        *Category: Technical Analysis*  
+        *Research Focus: Model Context Protocol*
+        EOF
+        
+        # Convert to HTML and insert into blog
+        python3 -c "
+import markdown
+import re
+
+with open('mcp_content.md', 'r') as f:
+    content = f.read()
+
+# Convert markdown to HTML
+html_content = markdown.markdown(content)
+
+# Create blog article HTML
+blog_article = f'''<article class='academic-article'>
+            <h2>$POST_TITLE</h2>
+            <div class='post-meta'>
+                <span class='category'>MCP Research</span> | 
+                <span class='date'>$CURRENT_DATE $CURRENT_TIME</span>
+            </div>
+            <div class='academic-content'>
+{html_content}
+            </div>
+            <div class='references'>
+                <h4>References</h4>
+                <p>Model Context Protocol Specification (2025)<br>
+                MCP Security Documentation (2025)<br>
+                Performance Optimization Best Practices (2025)<br>
+                Academic Research on AI Integration (2024-2025)</p>
+            </div>
+        </article>
+
+        <style>
+        .academic-article {{
+            border-left: 4px solid #2c3e50;
+            padding-left: 20px;
+            margin: 30px 0;
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+        }}
+        .academic-article h2 {{
+            color: #2c3e50;
+            font-size: 1.8em;
+            margin-bottom: 10px;
+        }}
+        .post-meta {{
+            color: #7f8c8d;
+            font-size: 0.9em;
+            margin-bottom: 20px;
+        }}
+        .category {{
+            background: #3498db;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-size: 0.8em;
+        }}
+        .academic-content {{
+            line-height: 1.6;
+            text-align: justify;
+        }}
+        .academic-content h3 {{
+            color: #34495e;
+            margin-top: 25px;
+        }}
+        .references {{
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #bdc3c7;
+            font-size: 0.9em;
+            color: #555;
+        }}
+        </style>'''
+
+# Insert into index.html
+with open('index.html', 'r') as f:
+    index_content = f.read()
+
+# Insert after header
+if '<header>' in index_content and '</header>' in index_content:
+    header_end = index_content.find('</header>') + len('</header>')
+    new_content = index_content[:header_end] + blog_article + index_content[header_end:]
+    
+    with open('index.html', 'w') as f:
+        f.write(new_content)
+    
+    print('Successfully inserted blog article')
+else:
+    print('Error: Could not find header tags in index.html')
+"
+        
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        CURRENT_DATE: ${{ github.event.head_commit.timestamp }}
-        
-    - name: Upload logs as artifact
-      if: always()
-      uses: actions/upload-artifact@v4
-      with:
-        name: blog-agent-logs
-        path: logs/
-        retention-days: 7
         
     - name: Commit and push changes
       run: |
         git add .
-        git diff --staged --quiet || git commit -m "Auto-generated MCP academic post - $(date '+%Y-%m-%d %H:%M:%S')"
+        git diff --staged --quiet || git commit -m "MCP Academic Post - $SELECTED_TOPIC - $CURRENT_TIMESTAMP"
         git push
