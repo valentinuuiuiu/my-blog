@@ -172,28 +172,8 @@ SELECTED_TOPIC="${MCP_TOPICS[$RANDOM_INDEX]}"
 # Generate academic title
 POST_TITLE="MCP Research $(date +%H): $SELECTED_TOPIC"
 
-# Create images section if images exist
+# Images disabled for quality control - focus on content
 IMAGES_SECTION=""
-if [ -d "images" ] && [ "$(ls -A images)" ]; then
-    IMAGES_SECTION="
-        <div class='images-section'>
-            <h3>Technical Diagrams</h3>"
-    
-    for img in images/*.jpg images/*.png images/*.jpeg; do
-        if [ -f "$img" ]; then
-            img_name=$(basename "$img")
-            IMAGES_SECTION="$IMAGES_SECTION
-            <div class='diagram'>
-                <img src='images/$img_name' alt='MCP Technical Diagram' style='max-width: 100%; height: auto; margin: 10px 0; border-radius: 8px;'>
-                <p><em>Figure: Model Context Protocol Architecture</em></p>
-            </div>"
-            break  # Only include first image for now
-        fi
-    done
-    
-    IMAGES_SECTION="$IMAGES_SECTION
-        </div>"
-fi
 
 # Create new blog post HTML with academic styling
 NEW_POST="<article class='academic-article'>
